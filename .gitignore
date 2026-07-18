@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Local datasets and generated artifacts
+data/**/*.csv
+data/**/*.CSV
+data/**/*.npz
+data/**/*.npy
+outputs/**/*.csv
+outputs/**/*.png
+outputs/**/*.npz
+outputs/**/*.txt
+!data/**/.gitkeep
+!outputs/**/.gitkeep
