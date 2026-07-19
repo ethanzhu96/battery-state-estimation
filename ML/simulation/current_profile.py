@@ -1,5 +1,6 @@
 import numpy as np
 
+#charge and discharge direction parameters
 def switch_mode(soc, direction, capacity_ah):
     if soc >= 0.7:
         direction = -1
