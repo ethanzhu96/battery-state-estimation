@@ -2,7 +2,7 @@
 
 Code for lithium-ion battery state-of-charge estimation using first- and second-order RC equivalent-circuit models, parameter identification, and Extended Kalman Filtering.
 
-This repository is code-only. Raw cell test data, generated parameter files, fitted `.npz` artifacts, and result plots are intentionally excluded.
+Raw cell test data is included so a fresh clone has the inputs needed to run the project. Generated parameter files, fitted `.npz` artifacts, and result plots under `outputs/` are intentionally excluded.
 
 ## Structure
 
@@ -10,7 +10,7 @@ This repository is code-only. Raw cell test data, generated parameter files, fit
 battery-state-estimation/
 ├── first_order/          # 1RC parameter ID and EKF scripts
 ├── second_order/         # 2RC parameter ID and EKF scripts
-├── data/                 # local raw inputs; ignored by git
+├── data/                 # raw inputs; tracked by git
 │   ├── first_order/
 │   └── second_order/
 ├── outputs/              # generated tables, fits, plots; ignored by git
@@ -40,7 +40,7 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Place raw CSV files locally under `data/first_order/` or `data/second_order/`. Generated files will be written to `outputs/first_order/` or `outputs/second_order/`.
+Raw CSV files live under `data/first_order/` or `data/second_order/` and are tracked by Git. Generated files will be written to `outputs/first_order/` or `outputs/second_order/`.
 
 Example commands:
 
