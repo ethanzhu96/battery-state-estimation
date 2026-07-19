@@ -4,6 +4,7 @@ __pycache__/
 .venv/
 venv/
 .env
+battery_docs
 
 # OS / editor
 .DS_Store
