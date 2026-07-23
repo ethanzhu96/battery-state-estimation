@@ -4,7 +4,6 @@ __pycache__/
 .venv/
 venv/
 .env
-battery_docs
 
 # OS / editor
 .DS_Store
@@ -17,3 +16,6 @@ outputs/**/*.png
 outputs/**/*.npz
 outputs/**/*.txt
 !outputs/**/.gitkeep
+
+# Personal docs
+battery_docs
