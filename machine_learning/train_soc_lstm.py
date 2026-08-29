@@ -10,7 +10,12 @@ from machine_learning.datasets.sequence_dataset import SOCSequenceDataset
 from machine_learning.models.lstm import LSTM
 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+elif torch.backends.mps.is_available():
+    device = torch.device("mps")
+else:
+    device = torch.device("cpu")
 print("training on", device)
 
 csv_path = Path(__file__).parent / "simulation" / "soc_dataset.csv"
@@ -131,4 +136,3 @@ test_mae = total_absolute_error / total_values
 print(f"Test MSE:  {test_mse:.6f}")
 print(f"Test RMSE: {test_rmse:.6f}")
 print(f"Test MAE:  {test_mae:.6f}")
-    

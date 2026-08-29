@@ -19,3 +19,6 @@ outputs/**/*.txt
 
 # Personal docs
 battery_docs
+
+# Generated synthetic datasets
+machine_learning/simulation/clean_trajectories.csv
