@@ -1,5 +1,42 @@
 # Battery State Estimation
 
+To run the 20-epoch SOH-only initial-charge ablation:
+
+```bash
+python -m machine_learning.train_soc_lstm --soh-only --initial-soc 0.5
+```
+
+This selects whole trajectories before splitting and normalization, leaving
+current/voltage as the only model inputs. It uses 872 training windows and
+436 windows each for validation and test with the current generated dataset.
+Omit `--initial-soc` for the original all-initial-SOC comparison. The profile
+split, model, window length, batch size, learning rate, seed, and 20 epochs
+are unchanged. The smaller dataset has fewer optimizer updates per epoch;
+this comparison does not match update counts. Metrics still use the final
+epoch, as in the original training script.
+
+## SOH memorization diagnostic
+
+Run from the repository root:
+
+```bash
+python -m machine_learning.overfit_soh
+```
+
+This trains the existing LSTM with SOH-only MSE on four fixed 1,800-sample
+windows at SOH 0.7, 0.8, 0.9, and 1.0. Each uses the square current profile,
+initial SOC 0.5, and the first window of its trajectory. Normalization uses
+only those four windows. Evaluation uses the same training examples: this
+checks memorization, not generalization. The constant-mean baseline has
+10 percentage points MAE and approximately 11.18 percentage points RMSE.
+
+The run stops below 1 percentage point training MAE or after 2,000 updates.
+`outputs/soh_overfit/` receives the best checkpoint, predictions, per-step
+history, and a JSON summary with configuration and normalization statistics.
+Use `--output` to preserve separate runs; `--steps`, `--sequence-length`,
+`--seed`, and `--learning-rate` are configurable. Existing full-data training
+is unchanged.
+
 Code for lithium-ion battery state-of-charge estimation using first- and second-order RC equivalent-circuit models, parameter identification, and Extended Kalman Filtering.
 
 Raw cell test data is included so a fresh clone has the inputs needed to run the project. Generated parameter files, fitted `.npz` artifacts, and result plots under `outputs/` are intentionally excluded.

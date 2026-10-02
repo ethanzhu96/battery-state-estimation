@@ -1,0 +1,36 @@
+{
+  "diagnostic": "training-set memorization; not generalization",
+  "passed": true,
+  "best_step": 230,
+  "mae_pp": 0.9578242897987366,
+  "rmse_pp": 1.0748841799795628,
+  "profile": "square",
+  "initial_soc": 0.5,
+  "trajectory_ids": [
+    40,
+    28,
+    16,
+    4
+  ],
+  "feature_columns": [
+    "current_a",
+    "voltage_v"
+  ],
+  "feature_mean": [
+    0.0,
+    3.6653940917689596
+  ],
+  "feature_std": [
+    2.5,
+    0.1003208731660809
+  ],
+  "device": "cpu",
+  "source": "C:\\Users\\ethan\\battery-state-estimation\\machine_learning\\simulation\\clean_trajectories.csv",
+  "config": {
+    "steps": 2000,
+    "sequence_length": 1800,
+    "seed": 42,
+    "learning_rate": 0.001,
+    "output": "outputs\\soh_overfit"
+  }
+}

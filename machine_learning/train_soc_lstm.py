@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 import sys
 
+import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -22,7 +23,27 @@ def parse_args():
         action="store_true",
         help="Train only the SOH objective for the multi-task ablation.",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--initial-soc", type=float, default=None,
+        help="Restrict all splits to trajectories with this initial SOC (e.g. 0.5).",
+    )
+    args = parser.parse_args()
+    if args.initial_soc is not None and not 0 <= args.initial_soc <= 1:
+        parser.error("--initial-soc must be between 0 and 1")
+    return args
+
+
+def filter_initial_soc(data, initial_soc):
+    if initial_soc is None:
+        return data
+    if "initial_soc" not in data.columns:
+        raise ValueError("Initial-SOC filtering requires an initial_soc column")
+    if (data.groupby("trajectory_id")["initial_soc"].nunique(dropna=False) != 1).any():
+        raise ValueError("initial_soc must be constant within each trajectory")
+    filtered = data.loc[np.isclose(data["initial_soc"], initial_soc, rtol=0, atol=1e-8)].copy()
+    if filtered.empty:
+        raise ValueError(f"No trajectories have initial SOC {initial_soc}")
+    return filtered
 
 
 def choose_device():
@@ -89,8 +110,11 @@ def main():
 
     csv_path = Path(__file__).parent / "simulation" / "clean_trajectories.csv"
     data = pd.read_csv(csv_path)
+    data = filter_initial_soc(data, args.initial_soc)
+    print("Initial SOC:", "all" if args.initial_soc is None else args.initial_soc)
+    print("Selected trajectories:", data["trajectory_id"].nunique())
 
-    # Every split contains every SOH and initial SOC. Current profiles are held
+    # Every split contains every SOH and selected initial SOC. Current profiles are held
     # out so validation and testing measure generalization to unseen loads.
     train_profiles = ["square", "pulse_rest"]
     validation_profiles = ["variable"]
