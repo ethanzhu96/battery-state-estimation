@@ -1,4 +1,5 @@
 import argparse
+import json
 from pathlib import Path
 import sys
 
@@ -27,6 +28,7 @@ def parse_args():
         "--initial-soc", type=float, default=None,
         help="Restrict all splits to trajectories with this initial SOC (e.g. 0.5).",
     )
+    parser.add_argument("--output", type=Path, help="Save best-validation checkpoint and run artifacts")
     args = parser.parse_args()
     if args.initial_soc is not None and not 0 <= args.initial_soc <= 1:
         parser.error("--initial-soc must be between 0 and 1")
@@ -195,6 +197,10 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     loss_fn = nn.MSELoss()
     epochs = 20
+    history = []
+    best_mae = float("inf")
+    if args.output:
+        args.output.mkdir(parents=True, exist_ok=True)
 
     for epoch in range(epochs):
         model.train()
@@ -224,6 +230,25 @@ def main():
         validation_metrics = evaluate(model, validation_loader, device)
         average_soc_loss = total_soc_loss / total_samples
         average_soh_loss = total_soh_loss / total_samples
+        history.append({"epoch": epoch + 1, "training_soh_mse": average_soh_loss,
+                        "validation_soh_mae_pp": 100 * validation_metrics["soh_mae"]})
+        if args.output:
+            pd.DataFrame(history).to_csv(args.output / "history.csv", index=False)
+            if validation_metrics["soh_mae"] < best_mae:
+                best_mae = validation_metrics["soh_mae"]
+                torch.save({
+                    "model_state_dict": model.state_dict(),
+                    "model_config": {"input_size": 2, "hidden_size": 64, "num_layers": 1},
+                    "feature_columns": feature_columns,
+                    "feature_mean": feature_mean.tolist(), "feature_std": feature_std.tolist(),
+                    "sequence_length": sequence_length, "sample_interval_s": 1.0,
+                    "current_convention": "positive_charge",
+                    "epoch": epoch + 1, "validation_soh_mae_pp": 100 * best_mae,
+                    "seed": 42, "initial_soc": args.initial_soc, "soh_only": args.soh_only,
+                    "train_trajectory_ids": train_trajectory_ids,
+                    "validation_trajectory_ids": validation_trajectory_ids,
+                    "test_trajectory_ids": test_trajectory_ids,
+                }, args.output / "best.pt")
 
         if args.soh_only:
             print(
@@ -243,6 +268,10 @@ def main():
                 f"{100 * validation_metrics['soh_mae']:.3f} percentage points"
             )
 
+    if args.output:
+        checkpoint = torch.load(args.output / "best.pt", map_location=device, weights_only=True)
+        model.load_state_dict(checkpoint["model_state_dict"])
+        print("Evaluating best validation checkpoint, epoch", checkpoint["epoch"])
     test_metrics = evaluate(model, test_loader, device)
     print("\nTest results")
     if not args.soh_only:
@@ -268,6 +297,14 @@ def main():
     )
     print("\nSOH predictions by true SOH")
     print(soh_summary.to_string(float_format=lambda value: f"{value:.4f}"))
+    if args.output:
+        soh_results.to_csv(args.output / "test_predictions.csv", index=False)
+        (args.output / "metrics.json").write_text(json.dumps({
+            "checkpoint_epoch": checkpoint["epoch"],
+            "validation_soh_mae_pp": checkpoint["validation_soh_mae_pp"],
+            "test_soh_mae_pp": 100 * test_metrics["soh_mae"],
+            "test_soh_rmse_pp": 100 * test_metrics["soh_rmse"],
+        }, indent=2) + "\n")
 
 
 if __name__ == "__main__":

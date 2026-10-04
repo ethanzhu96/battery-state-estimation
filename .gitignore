@@ -11,11 +11,13 @@ venv/
 .idea/
 
 # Generated artifacts
-outputs/**/*.csv
-outputs/**/*.png
-outputs/**/*.npz
-outputs/**/*.txt
+outputs/**
+!outputs/**/
 !outputs/**/.gitkeep
+
+# Private research notebook (experiment/test source code stays visible)
+research/research_log.ipynb
+.ipynb_checkpoints/
 
 # Personal docs
 battery_docs
